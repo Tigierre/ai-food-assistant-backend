@@ -1,27 +1,21 @@
-#!/usr/bin/env python3
+from fastapi import FastAPI, Request
+from langchain_community.chat_models import ChatOpenAI
+from langchain.chains import ConversationChain
 import os
-from langgraph_sdk import get_client
 
-def main():
-    # Configurazione per Railway
-    host = os.getenv("HOST", "0.0.0.0")  # Railway richiede 0.0.0.0
-    port = int(os.getenv("PORT", 8080))   # Railway usa PORT environment variable
-    
-    print(f"Starting LangGraph Studio on {host}:{port}")
-    
-    # Avvia LangGraph Studio con configurazione Railway
-    try:
-        # Qui dovresti avere la logica per avviare il tuo server LangGraph
-        # Assicurati che ascolti su host:port corretti
-        
-        # Se stai usando LangGraph Studio, potrebbe essere qualcosa come:
-        from langgraph_studio import create_app
-        app = create_app()
-        app.run(host=host, port=port, debug=False)
-        
-    except Exception as e:
-        print(f"Error starting server: {e}")
-        raise
+app = FastAPI()
+llm = ChatOpenAI(openai_api_key=os.environ["OPENAI_API_KEY"], model_name="gpt-4o-mini", temperature=0.2)
+chain = ConversationChain(llm=llm)
 
-if __name__ == "__main__":
-    main()
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+@app.post("/chat")
+async def chat(request: Request):
+    data = await request.json()
+    prompt = data.get("prompt", "")
+    if not prompt:
+        return {"error": "No prompt provided"}
+    response = chain.run(prompt)
+    return {"response": response}
