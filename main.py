@@ -4,7 +4,7 @@ from langchain.chains import ConversationChain
 import os
 
 app = FastAPI()
-llm = ChatOpenAI(openai_api_key=os.environ["OPENAI_API_KEY"], model_name="gpt-4o", temperature=0.2)
+llm = ChatOpenAI(openai_api_key=os.environ["OPENAI_API_KEY"], model_name="gpt-4o-mini", temperature=0.2)
 chain = ConversationChain(llm=llm)
 
 @app.get("/health")
